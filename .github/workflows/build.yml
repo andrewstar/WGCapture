@@ -1,4 +1,4 @@
-name: Build wgc_core DLL
+name: Build wgc_core Release DLL
 
 on:
   workflow_dispatch:
@@ -9,26 +9,48 @@ jobs:
 
     steps:
 
+    # 拉取代码
     - name: Checkout
       uses: actions/checkout@v4
 
+    # 配置 Visual Studio MSBuild
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v2
 
+    # 编译 Release x64
     - name: Build Release x64
-      run: |
-        msbuild cpp_backend/wgc_core/wgc_core.sln `
-        /p:Configuration=Release `
-        /p:Platform=x64
-
-    - name: Find DLL
       shell: pwsh
       run: |
+        msbuild cpp_backend/wgc_core/wgc_core.sln `
+          /p:Configuration=Release `
+          /p:Platform=x64 `
+          /m
+
+    # 将 Release DLL 替换 Python 包中的 DLL
+    - name: Copy Release DLL
+      shell: pwsh
+      run: |
+        Copy-Item `
+          cpp_backend/wgc_core/x64/Release/wgc_core.dll `
+          wgcapture/dlls/wgc_core.dll `
+          -Force
+
+    # 检查最终 DLL
+    - name: Verify DLL
+      shell: pwsh
+      run: |
+        Write-Host "DLL files:"
         Get-ChildItem -Recurse -Filter wgc_core.dll
 
-    - name: Upload DLL
+        Write-Host ""
+        Write-Host "Final DLL:"
+        Get-Item wgcapture/dlls/wgc_core.dll |
+          Select-Object FullName, Length, LastWriteTime
+
+    # 上传最终可用 DLL
+    - name: Upload Release DLL
       uses: actions/upload-artifact@v4
       with:
         name: wgc_core_release
         path: |
-          **/wgc_core.dll
+          wgcapture/dlls/wgc_core.dll
