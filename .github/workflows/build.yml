@@ -22,8 +22,9 @@ jobs:
         /p:Platform=x64
 
     - name: Find DLL
+      shell: pwsh
       run: |
-        dir /s wgc_core.dll
+        Get-ChildItem -Recurse -Filter wgc_core.dll
 
     - name: Upload DLL
       uses: actions/upload-artifact@v4
