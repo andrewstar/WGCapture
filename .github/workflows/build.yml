@@ -1,0 +1,30 @@
+name: Build wgc_core DLL
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Build Release x64
+      run: |
+        msbuild wgc_core.sln /p:Configuration=Release /p:Platform=x64
+
+    - name: Find DLL
+      run: |
+        dir /s wgc_core.dll
+
+    - name: Upload DLL
+      uses: actions/upload-artifact@v4
+      with:
+        name: wgc_core_release
+        path: |
+          **/wgc_core.dll
